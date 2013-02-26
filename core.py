@@ -115,7 +115,3 @@ class cxcore:
             self.__ifcx_query('shit_zf_djks_local.html')
 
 
-if __name__ == '__main__':
-    stuinfo = cxcore('2010021110033','z310130210448')
-    for i in [3,4,5]:
-        stuinfo.user_query([i])
