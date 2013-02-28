@@ -70,8 +70,7 @@ class cxcore(object):
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read()
-
-        
+ 
         self.save(filename,tmpcontent)
 
     
@@ -81,6 +80,7 @@ class cxcore(object):
         self.__query_header['HOST'] = 'ea.uestc.edu.cn'
         self.__query_header['Referer'] = 'http://ea.uestc.edu.cn/xs_main_zzjk1.aspx?xh='+self.__username+'&type=1'
 
+        #成绩查询
         if(info[0] in [0,1,2]):
             
             tmpregurl = re.search('"xscjcx.aspx\?([^"]+)"',self.__tmpcontent)
@@ -88,6 +88,8 @@ class cxcore(object):
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__cjcx_query(info)
 
+
+        #课表查询
         elif(info[0] == 3):
             
             tmpregurl = re.search('"xskbcx.aspx\?([^"]+)"',self.__tmpcontent)
@@ -95,6 +97,7 @@ class cxcore(object):
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kbcx_local.html')
 
+        #考试查询
         elif(info[0] == 4):
             
             tmpregurl = re.search('"xskscx.aspx\?([^"]+)"',self.__tmpcontent)
@@ -102,6 +105,7 @@ class cxcore(object):
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kscx_local.html')
 
+        #考试等级
         elif(info[0] == 5):
             
             tmpregurl = re.search('"xsdjkscx.aspx\?([^"]+)"',self.__tmpcontent)
