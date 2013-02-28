@@ -13,14 +13,11 @@ class StateMachine(object):
             '1':self.chart, 
             '2':self.exam,
             '3':self.level,
-            '4':self.exit
+            '4':self.exit,
+            '5':self.execute
         }
         self.userinfo=user
         
-        #validate years
-        #self.year = ['2001-2002','2002-2003','2003-2004','2004-2005','2005-2006','2006-2007','2007-2008','2008-2009','2009-2010','2010-2011','2011-2012','2012-2013','2013-2014']
-
-        pass
 
     def run(self,init):
         return self.states.get(init,self.exit)()
@@ -47,7 +44,7 @@ class StateMachine(object):
             self.userinfo.user_query(info)
             return 'r'
         
-        y=year.get(self.get_year(),'2012-2013')
+        y=year.get(self.get_year(),default_year)
         print '请选择你要查询的学期'
         print '0、第一学期  1、第二学期  2、第三学期'
         termchoose=raw_input('> ')
@@ -69,7 +66,7 @@ class StateMachine(object):
             self.userinfo.user_query(info)
             return 'r'
         
-        y=year.get(self.get_year(),'2012-2013')
+        y=year.get(self.get_year(),default_year)
         info=[1,y]
  
         return self.year_grade(info)
@@ -115,7 +112,11 @@ class StateMachine(object):
     def exit(self):
         return 'q'
     
-    #得到学年
+    
+
+
+
+    #Public 选择学年
     def get_year(self):
         print '选择你要查询的学年'
         print '0、2001-2002  1、2002-2003  2、2003-2004'
@@ -126,5 +127,10 @@ class StateMachine(object):
 
         yearchoose = raw_input('> ')
         return yearchoose
+
+
+
+    def execute(self):
+        self.userinfo.open()
         
 
