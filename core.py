@@ -132,6 +132,9 @@ class cxcore(object):
     
     #save stylesheet
     def get_style(self,content):
+        if os.path.exists("tmp") != True:
+            os.makedirs("tmp")
+
         suffix={'css':[],'gif':[],'jpg':[],'js':[],'ico':[]}
         src=[]
 
