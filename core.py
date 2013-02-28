@@ -140,6 +140,8 @@ class cxcore(object):
 
         for i,a in suffix.items():
             suffix[i]=re.findall('href="([^"]+\.'+i+')',content)
+            if suffix.get(i)==[]:
+                suffix[i]=re.findall('src="([^"]+\.'+i+')',content)
             
             src+=suffix.get(i)
         
