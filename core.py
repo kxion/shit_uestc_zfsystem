@@ -1,12 +1,13 @@
-#!/usr/bin/env python
-#coding=utf-8
+#-*- coding=utf-8 -*-
 
 import re
 import cookielib
 import urllib
 import urllib2
+import webbrowser
+import os
 
-class cxcore:
+class cxcore(object):
     
     __login_url = 'http://portal.uestc.edu.cn/userPasswordValidate.portal'
     __query_url = 'http://ea.uestc.edu.cn/default_zzjk.aspx'
@@ -41,7 +42,7 @@ class cxcore:
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read().decode('gb2312').encode('utf-8')
         tmpViewstate = re.search('"__VIEWSTATE" value="([^"]+)"',tmpcontent)
-        
+
         self.__cjcx_data['__VIEWSTATE'] = tmpViewstate.group(1)
 
         if(info[0] == 2):
@@ -60,11 +61,8 @@ class cxcore:
         tmpreqhandle = urllib2.Request(self.__info_url,self.__cjcx_data,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,self.__cjcx_data).read()
 
-        tmpfp = open('shit_zf_cjcx_local.html','w')
-        tmpfp.write(tmpcontent)
-        tmpfp.close()
-
-        print 'shit_zf_cjcx_local.html已经保存到当前目录下'
+        filename='shit_zf_cjcx_local.html'
+        self.save(filename,tmpcontent)
     
     
     def __ifcx_query(self,filename):
@@ -73,11 +71,8 @@ class cxcore:
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read()
 
-        tmpfp = open(filename,'w')
-        tmpfp.write(tmpcontent)
-        tmpfp.close()
-
-        print filename+'已经保存到当前目录下'
+        
+        self.save(filename,tmpcontent)
 
     
     def user_query(self,info):
@@ -113,5 +108,19 @@ class cxcore:
             self.__info_url = 'http://ea.uestc.edu.cn/xsdjkscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_djks_local.html')
+
+    
+    def save(self,filename,content):
+        tmpfp = open(filename,'w')
+        tmpfp.write(content)
+        tmpfp.close()
+        
+        browser=raw_input("是否用浏览器打开?(Y/N)\n")
+        if browser=='Y' or browser=='y':
+            path=os.path.abspath(filename)
+            webbrowser.open_new_tab('file://'+path)
+        else:
+            print filename+'已经保存到当前目录下'
+        
 
 
