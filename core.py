@@ -119,10 +119,7 @@ class cxcore:
         browser=raw_input("是否用浏览器打开?(y/n)\n")
         if browser=='Y' or browser=='y':
             path=os.path.abspath(filename)
-            pid = os.fork()
-            if pid == 0:
-                webbrowser.open_new_tab('file://'+path)
-                exit(0)
+            webbrowser.open_new_tab('file://'+path)
         else:
             print filename+'已经保存到当前目录下'
     
@@ -138,8 +135,8 @@ class cxcore:
 
             self.__download(suffix[suffixkey])
             for filename in suffix[suffixkey]:
-                content = re.sub('href="'+filename+'"','href="tmp'+os.sep+filename+'"',content)
-                content = re.sub('src="'+filename+'"','src="tmp'+os.sep+filename+'"',content)
+                content = re.sub('href="'+filename+'"','href="tmp/'+filename+'"',content)
+                content = re.sub('src="'+filename+'"','src="tmp/'+filename+'"',content)
         
         tmpsrc = self.__get_inside_files(suffix['css'])
         self.__download(tmpsrc)
@@ -151,7 +148,7 @@ class cxcore:
         tmpret = []
         
         for filename in css:
-            tmppath = 'tmp'+os.sep+filename
+            tmppath = 'tmp/'+filename
             try:
                 tmpfp = open(tmppath)
             except:
@@ -159,7 +156,7 @@ class cxcore:
             
             tmpcontent = tmpfp.read()
             tmpsrc = re.findall('url\(([^\)]+)\)',tmpcontent)
-            tmpdir = os.sep.join(filename.split(os.sep)[:-1])+os.sep
+            tmpdir = '/'.join(filename.split('/')[:-1])+'/'
             
             for tmpiter in range(len(tmpsrc)):
                 tmpsrc[tmpiter] = tmpdir + tmpsrc[tmpiter].lstrip('/')
@@ -174,18 +171,18 @@ class cxcore:
         for tmpfilename in filelist:
             
             try:
-                tmpopen = urllib2.urlopen('http://'+self.__root_host+os.sep+tmpfilename)
+                tmpopen = urllib2.urlopen('http://'+self.__root_host+'/'+tmpfilename)
             except:
                 continue
 
             tmpdata = tmpopen.read()
-            tmppath = 'tmp'+os.sep+tmpfilename
-            directory=os.sep.join(tmppath.split(os.sep)[:-1])
+            tmppath = 'tmp/'+tmpfilename
+            directory = '/'.join(tmppath.split('/')[:-1])
 
             if os.path.exists(directory) != True:
                 os.makedirs(directory)
             if os.path.exists(tmppath) != True:
-                tmpfp = open(tmppath,"w")
+                tmpfp = open(tmppath,"wb")
                 tmpfp.write(tmpdata)
                 tmpfp.close()
 
