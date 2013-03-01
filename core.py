@@ -9,7 +9,7 @@ import webbrowser
 import os
 
 class cxcore:
-    __root_url = 'http://ea.uestc.edu.cn'
+    __root_host= 'ea.uestc.edu.cn'
     __login_url = 'http://portal.uestc.edu.cn/userPasswordValidate.portal'
     __query_url = 'http://ea.uestc.edu.cn/default_zzjk.aspx'
     __login_header = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Charset':'GBK,utf-8;q=0.7,*;q=0.3','User-Agent':'Mozilla/5.0 (X11;Linux x86_64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.12 Safari/537.31','Content-Type':'application/x-www-form-urlencoded','Connection':'keep-alive','HOST':'portal.uestc.edu.cn','Referer':'http://portal.uestc.edu.cn'}
@@ -37,12 +37,12 @@ class cxcore:
 
     def __cjcx_query(self,info):
         
-        
         self.__cjcx_data = {'__EVENTTARGET':'','__EVENTARGUMENT':'','hidLanguage':'','ddlXN':'','ddlXQ':'','ddl_kcxz':''}
 
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read().decode('gb2312').encode('utf-8')
+
         tmpViewstate = re.search('"__VIEWSTATE" value="([^"]+)"',tmpcontent)
         
         self.__cjcx_data['__VIEWSTATE'] = tmpViewstate.group(1)
@@ -62,10 +62,8 @@ class cxcore:
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
         tmpreqhandle = urllib2.Request(self.__info_url,self.__cjcx_data,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,self.__cjcx_data).read()
-
-        tmpfp = open('shit_zf_cjcx_local.html','w')
-        tmpfp.write(tmpcontent)
-        tmpfp.close()
+        
+        self.__save('shit_zf_cjcx_local.html',tmpcontent)
 
         print 'shit_zf_cjcx_local.html已经保存到当前目录下'
     
@@ -75,47 +73,46 @@ class cxcore:
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read()
-
         
-        self.save(filename,tmpcontent)
-
+        self.__save(filename,tmpcontent)
     
     def user_query(self,info):
         
         self.__query_header = self.__login_header
-        self.__query_header['HOST'] = self.__root_url
-        self.__query_header['Referer'] = 'http://'+self.__root_url+'/xs_main_zzjk1.aspx?xh='+self.__username+'&type=1'
+        self.__query_header['HOST'] = self.__root_host
+        self.__query_header['Referer'] = 'http://'+self.__root_host+'/xs_main_zzjk1.aspx?xh='+self.__username+'&type=1'
 
         if(info[0] in [0,1,2]):
             
             tmpregurl = re.search('"xscjcx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://'+self.__root_url+'/xscjcx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_host+'/xscjcx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__cjcx_query(info)
 
         elif(info[0] == 3):
             
             tmpregurl = re.search('"xskbcx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://'+self.__root_url+'/xskbcx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_host+'/xskbcx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kbcx_local.html')
 
         elif(info[0] == 4):
             
             tmpregurl = re.search('"xskscx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://'+self.__root_url+'/xskscx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_host+'/xskscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kscx_local.html')
 
         elif(info[0] == 5):
             
             tmpregurl = re.search('"xsdjkscx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://'+self.__root_url+'/xsdjkscx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_host+'/xsdjkscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_djks_local.html')
 
-    def save(self,filename,content):
-        content=self.get_style(content)
+    
+    def __save(self,filename,content):
+        #content=self.get_style(content)
         tmpfp = open(filename,'w')
         tmpfp.write(content)
         tmpfp.close()
@@ -171,7 +168,7 @@ class cxcore:
 
     def download(self,li):
         for i in li:
-            try:s=urllib2.urlopen('http://'+self.__root_url+'/'+i)
+            try:s=urllib2.urlopen('http://'+self.__root_host+'/'+i)
             except:
                 continue
             data=s.read()
@@ -183,4 +180,7 @@ class cxcore:
                 with open(path,"wb") as f:
                     f.write(data)
             s.close()
-        
+
+if __name__ == '__main__':
+    userinfo = cxcore('2010021110033','z310130210448')
+    userinfo.user_query([2])
