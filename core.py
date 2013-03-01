@@ -2,13 +2,14 @@
 #coding=utf-8
 
 import re
-import cookielib
+import os
 import urllib
 import urllib2
+import cookielib
 import webbrowser
-import os
 
 class cxcore:
+    
     __root_host= 'ea.uestc.edu.cn'
     __login_url = 'http://portal.uestc.edu.cn/userPasswordValidate.portal'
     __query_url = 'http://ea.uestc.edu.cn/default_zzjk.aspx'
@@ -65,9 +66,6 @@ class cxcore:
         
         self.__save('shit_zf_cjcx_local.html',tmpcontent)
 
-        print 'shit_zf_cjcx_local.html已经保存到当前目录下'
-    
-    
     def __ifcx_query(self,filename):
 
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
@@ -112,7 +110,8 @@ class cxcore:
 
     
     def __save(self,filename,content):
-        #content=self.get_style(content)
+        
+        content=self.__get_style(content)
         tmpfp = open(filename,'w')
         tmpfp.write(content)
         tmpfp.close()
@@ -120,67 +119,77 @@ class cxcore:
         browser=raw_input("是否用浏览器打开?(y/n)\n")
         if browser=='Y' or browser=='y':
             path=os.path.abspath(filename)
-            webbrowser.open_new_tab('file://'+path)
+            pid = os.fork()
+            if pid == 0:
+                webbrowser.open_new_tab('file://'+path)
+                exit(0)
         else:
             print filename+'已经保存到当前目录下'
     
-    #save stylesheet
-    def get_style(self,content):
-        suffix={'css':[],'gif':[],'jpg':[],'js':[],'ico':[]}
-        src=[]
-
-        for i,a in suffix.items():
-            suffix[i]=re.findall('href="([^"]+\.'+i+')',content)
-            
-            src+=suffix.get(i)
+    def __get_style(self,content):
         
+        suffix={'css':[],'gif':[],'jpg':[],'js':[],'ico':[],'png':[],'jpeg':[]}
         
-        self.download(src)
+        for suffixkey in suffix.keys():
+            tmpfilelist = re.findall('href="([^"]+\.'+suffixkey+')',content)
+            suffix[suffixkey] = tmpfilelist
+            tmpfilelist = re.findall('src="([^"]+\.'+suffixkey+')',content)
+            suffix[suffixkey] += tmpfilelist
 
-        for i in src:
-            content=re.sub(i,'tmp/'+i,content)
-
-        s2=self.get_inside_css(suffix.get("css"))
-        self.download(s2)
-
-
+            self.__download(suffix[suffixkey])
+            for filename in suffix[suffixkey]:
+                content = re.sub('href="'+filename+'"','href="tmp'+os.sep+filename+'"',content)
+                content = re.sub('src="'+filename+'"','src="tmp'+os.sep+filename+'"',content)
         
-        
+        tmpsrc = self.__get_inside_files(suffix['css'])
+        self.__download(tmpsrc)
+
         return content
     
-    def get_inside_css(self,css):
-        src=[]
-        for i in css:
-            p='tmp/'+i
-            try:content=open(p)
+    def __get_inside_files(self,css):
+        
+        tmpret = []
+        
+        for filename in css:
+            tmppath = 'tmp'+os.sep+filename
+            try:
+                tmpfp = open(tmppath)
             except:
-                print "exception"
                 continue
-            content=content.read()
-            tmpsrc=re.findall('url\(([^\)]+)',content)
-            prefix='/'.join(i.split('/')[:-1])
-            for j in tmpsrc:
-                #TODO  my have problem when j is like "/base.css"
+            
+            tmpcontent = tmpfp.read()
+            tmpsrc = re.findall('url\(([^\)]+)\)',tmpcontent)
+            tmpdir = os.sep.join(filename.split(os.sep)[:-1])+os.sep
+            
+            for tmpiter in range(len(tmpsrc)):
+                tmpsrc[tmpiter] = tmpdir + tmpsrc[tmpiter].lstrip('/')
                 
-                src.append(prefix+'/'+j)
-        return src
+            tmpret += tmpsrc
+            
+        return tmpret
             
 
-    def download(self,li):
-        for i in li:
-            try:s=urllib2.urlopen('http://'+self.__root_host+'/'+i)
+    def __download(self,filelist):
+        
+        for tmpfilename in filelist:
+            
+            try:
+                tmpopen = urllib2.urlopen('http://'+self.__root_host+os.sep+tmpfilename)
             except:
                 continue
-            data=s.read()
-            path='tmp/'+i
-            directory='/'.join(path.split('/')[:-1])
+
+            tmpdata = tmpopen.read()
+            tmppath = 'tmp'+os.sep+tmpfilename
+            directory=os.sep.join(tmppath.split(os.sep)[:-1])
+
             if os.path.exists(directory) != True:
                 os.makedirs(directory)
-            if os.path.exists(path) !=True:
-                with open(path,"wb") as f:
-                    f.write(data)
-            s.close()
+            if os.path.exists(tmppath) != True:
+                tmpfp = open(tmppath,"w")
+                tmpfp.write(tmpdata)
+                tmpfp.close()
 
 if __name__ == '__main__':
+    
     userinfo = cxcore('2010021110033','z310130210448')
     userinfo.user_query([2])
