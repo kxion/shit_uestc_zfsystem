@@ -184,5 +184,3 @@ class cxcore:
                     f.write(data)
             s.close()
         
-if __name__ == '__main__':
-    userinfo = cxcore('2010021110033','z310130210448')
