@@ -189,7 +189,3 @@ class cxcore:
                 tmpfp.write(tmpdata)
                 tmpfp.close()
 
-if __name__ == '__main__':
-    
-    userinfo = cxcore('2010021110033','z310130210448')
-    userinfo.user_query([2])
