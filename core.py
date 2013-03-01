@@ -1,4 +1,5 @@
-#-*- coding=utf-8 -*-
+#!/usr/bin/env python
+#coding=utf-8
 
 import re
 import cookielib
@@ -7,20 +8,21 @@ import urllib2
 import webbrowser
 import os
 
-class cxcore(object):
-    
+class cxcore:
+    __root_url = 'http://ea.uestc.edu.cn'
     __login_url = 'http://portal.uestc.edu.cn/userPasswordValidate.portal'
     __query_url = 'http://ea.uestc.edu.cn/default_zzjk.aspx'
     __login_header = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Charset':'GBK,utf-8;q=0.7,*;q=0.3','User-Agent':'Mozilla/5.0 (X11;Linux x86_64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.12 Safari/537.31','Content-Type':'application/x-www-form-urlencoded','Connection':'keep-alive','HOST':'portal.uestc.edu.cn','Referer':'http://portal.uestc.edu.cn'}
     __cookie = cookielib.CookieJar()
 
     def __init__(self,username,password):
-
+        
         self.__username = username
         self.__password = password
         self.__login_data = {'userName':self.__username,'password':self.__password,'btn':'登录'}
         self.__login_data = urllib.urlencode(self.__login_data)
         self.__login()
+        print '登录成功'
 
     def __login(self):
 
@@ -94,14 +96,14 @@ class cxcore(object):
         elif(info[0] == 3):
             
             tmpregurl = re.search('"xskbcx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xskbcx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xskbcx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kbcx_local.html')
 
         elif(info[0] == 4):
             
             tmpregurl = re.search('"xskscx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xskscx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xskscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kscx_local.html')
 
@@ -112,7 +114,6 @@ class cxcore(object):
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_djks_local.html')
 
-    
     def save(self,filename,content):
         content=self.get_style(content)
         tmpfp = open(filename,'w')
@@ -150,7 +151,6 @@ class cxcore(object):
         
         return content
     
-    #获取css中链接的文件
     def get_inside_css(self,css):
         src=[]
         for i in css:
@@ -184,11 +184,5 @@ class cxcore(object):
                     f.write(data)
             s.close()
         
-        
-            
-            
-            
-        
-        
-
-
+if __name__ == '__main__':
+    userinfo = cxcore('2010021110033','z310130210448')
