@@ -1,15 +1,19 @@
-#!/usr/bin/env python
-#coding=utf-8
+#-*- coding=utf-8 -*-
 
 import re
 import cookielib
 import urllib
 import urllib2
+import webbrowser
+import os
 
-class cxcore:
+class cxcore(object):
+
+    __root_url='ea.uestc.edu.cn'
+    #__root_url='222.197.164.82'
     
     __login_url = 'http://portal.uestc.edu.cn/userPasswordValidate.portal'
-    __query_url = 'http://ea.uestc.edu.cn/default_zzjk.aspx'
+    __query_url = 'http://'+__root_url+'/default_zzjk.aspx'
     __login_header = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Charset':'GBK,utf-8;q=0.7,*;q=0.3','User-Agent':'Mozilla/5.0 (X11;Linux x86_64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.12 Safari/537.31','Content-Type':'application/x-www-form-urlencoded','Connection':'keep-alive','HOST':'portal.uestc.edu.cn','Referer':'http://portal.uestc.edu.cn'}
     __cookie = cookielib.CookieJar()
 
@@ -41,7 +45,7 @@ class cxcore:
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read().decode('gb2312').encode('utf-8')
         tmpViewstate = re.search('"__VIEWSTATE" value="([^"]+)"',tmpcontent)
-        
+
         self.__cjcx_data['__VIEWSTATE'] = tmpViewstate.group(1)
 
         if(info[0] == 2):
@@ -60,11 +64,8 @@ class cxcore:
         tmpreqhandle = urllib2.Request(self.__info_url,self.__cjcx_data,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,self.__cjcx_data).read()
 
-        tmpfp = open('shit_zf_cjcx_local.html','w')
-        tmpfp.write(tmpcontent)
-        tmpfp.close()
-
-        print 'shit_zf_cjcx_local.html已经保存到当前目录下'
+        filename='shit_zf_cjcx_local.html'
+        self.save(filename,tmpcontent)
     
     
     def __ifcx_query(self,filename):
@@ -72,46 +73,131 @@ class cxcore:
         tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
         tmpreqhandle = urllib2.Request(self.__info_url,None,self.__query_header)
         tmpcontent = tmpopener.open(tmpreqhandle,None).read()
-
-        tmpfp = open(filename,'w')
-        tmpfp.write(tmpcontent)
-        tmpfp.close()
-
-        print filename+'已经保存到当前目录下'
+ 
+        self.save(filename,tmpcontent)
 
     
     def user_query(self,info):
         
         self.__query_header = self.__login_header
-        self.__query_header['HOST'] = 'ea.uestc.edu.cn'
-        self.__query_header['Referer'] = 'http://ea.uestc.edu.cn/xs_main_zzjk1.aspx?xh='+self.__username+'&type=1'
+        self.__query_header['HOST'] = self.__root_url
+        self.__query_header['Referer'] = 'http://'+self.__root_url+'/xs_main_zzjk1.aspx?xh='+self.__username+'&type=1'
 
+        #成绩查询
         if(info[0] in [0,1,2]):
             
             tmpregurl = re.search('"xscjcx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xscjcx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xscjcx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__cjcx_query(info)
 
+
+        #课表查询
         elif(info[0] == 3):
             
             tmpregurl = re.search('"xskbcx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xskbcx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xskbcx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kbcx_local.html')
 
+        #考试查询
         elif(info[0] == 4):
             
             tmpregurl = re.search('"xskscx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xskscx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xskscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_kscx_local.html')
 
+        #考试等级
         elif(info[0] == 5):
             
             tmpregurl = re.search('"xsdjkscx.aspx\?([^"]+)"',self.__tmpcontent)
-            self.__info_url = 'http://ea.uestc.edu.cn/xsdjkscx.aspx?'+tmpregurl.group(1)
+            self.__info_url = 'http://'+self.__root_url+'/xsdjkscx.aspx?'+tmpregurl.group(1)
             self.__info_url = self.__info_url.decode('utf-8').encode('gb2312')
             self.__ifcx_query('shit_zf_djks_local.html')
+
+    
+    def save(self,filename,content):
+        content=self.get_style(content)
+        tmpfp = open(filename,'w')
+        tmpfp.write(content)
+        tmpfp.close()
+        
+        browser=raw_input("是否用浏览器打开?(y/n)\n")
+        if browser=='Y' or browser=='y':
+            path=os.path.abspath(filename)
+            webbrowser.open_new_tab('file://'+path)
+        else:
+            print filename+'已经保存到当前目录下'
+    
+    #save stylesheet
+    def get_style(self,content):
+        if os.path.exists("tmp") != True:
+            os.makedirs("tmp")
+
+        suffix={'css':[],'gif':[],'jpg':[],'js':[],'ico':[]}
+        src=[]
+
+        for i,a in suffix.items():
+            suffix[i]=re.findall('href="([^"]+\.'+i+')',content)
+            if suffix.get(i)==[]:
+                suffix[i]=re.findall('src="([^"]+\.'+i+')',content)
+            
+            src+=suffix.get(i)
+        
+        
+        self.download(src)
+
+        for i in src:
+            content=re.sub(i,'tmp/'+i,content)
+
+        s2=self.get_inside_css(suffix.get("css"))
+        self.download(s2)
+
+
+        
+        
+        return content
+    
+    #获取css中链接的文件
+    def get_inside_css(self,css):
+        src=[]
+        for i in css:
+            p='tmp/'+i
+            try:content=open(p)
+            except:
+                print "exception"
+                continue
+            content=content.read()
+            tmpsrc=re.findall('url\(([^\)]+)',content)
+            prefix='/'.join(i.split('/')[:-1])
+            for j in tmpsrc:
+                #TODO  my have problem when j is like "/base.css"
+                
+                src.append(prefix+'/'+j)
+        return src
+            
+
+    def download(self,li):
+        for i in li:
+            try:s=urllib2.urlopen('http://'+self.__root_url+'/'+i)
+            except:
+                continue
+            data=s.read()
+            path='tmp/'+i
+            directory='/'.join(path.split('/')[:-1])
+            if os.path.exists(directory) != True:
+                os.makedirs(directory)
+            if os.path.exists(path) !=True:
+                with open(path,"wb") as f:
+                    f.write(data)
+            s.close()
+        
+        
+            
+            
+            
+        
+        
 
 
