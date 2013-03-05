@@ -6,6 +6,7 @@ import urllib
 import urllib2
 import cookielib
 import time
+import threading
 
 class xkcore:
 
@@ -106,8 +107,16 @@ class xkcore:
         
 
         if self.__viewflag == 0 :
-            self.__xkviewstate = re.search('name="__VIEWSTATE" value="([^"]+)"',tmpcontent).group(1)
-            self.__viewflag = 1
+            tmptime = 1
+            while self.__viewflag == 0:
+                try:
+                    self.__xkviewstate = re.search('name="__VIEWSTATE" value="([^"]+)"',tmpcontent).group(1)
+                except:
+                    time.sleep(tmptime)
+                    tmptime <<= 1
+                    continue
+                
+                self.__viewflag = 1
 
         for iterator in range(len(tmpcourseinfo)):
             print iterator,
@@ -116,29 +125,73 @@ class xkcore:
 
         return tmpcourseinfo
     
+    def __threading_go(self,parmurl,parmdata,parmid,parmcount):
+        
+        tmptarget = ':'.join('Button1'.split('$'))
+        tmpdata = {'__EVENTTARGET':tmptarget,'__EVENTARGUMENT':'','__VIEWSTATE':self.__xkviewstate,'xkkh':parmdata}
+        tmpdata = urllib.urlencode(tmpdata)
+
+        tmpcourseurl = 'http://'+self.__serveraddr+'/xsxjs.aspx?xkkh='+parmurl+'&xh='+self.__username
+        self.__infoheader['Referer'] = tmpcourseurl
+        
+        tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
+        tmpreqhandle = urllib2.Request(tmpcourseurl,tmpdata,self.__infoheader)
+        
+        stopflag = True
+        while parmcount and stopflag :
+            
+            parmcount = parmcount - 1
+
+            tmpcontent = tmpopener.open(tmpreqhandle,tmpdata).read().decode('gb2312').encode('utf-8')
+            
+            tmpre = re.search('五秒防刷',tmpcontent)
+            if tmpre != None:
+                sleep(6)
+                continue
+            
+            tmpre = re.search('人数超过限制',tmpcontent)
+            if tmpre != None:
+                print "%d号课程人数超过限制，正在等待" % parmid
+                time.sleep(1)
+                continue
+           
+            tmpre = re.search('现在不是选课时间',tmpcontent)
+            if tmpre != None:
+                print "现在不是选课时间，正在等待"
+                time.sleep(1)
+                continue
+
+            tmpre = re.search('上课时间冲突',tmpcontent)
+            if tmpre != None:
+                print "%d号课程上课时间冲突" % parmid
+                stopflag = False
+                continue
+            
+            tmpre = re.search('保存成功',tmpcontent)
+            if tmpre != None:
+                print "恭喜你，%d号课程保存成功" % parmid
+                stopflag = False
+                continue
+
+            stopflag = False
+
+
+
+
     def go(self,parmcourse):
 
         for item in parmcourse:
             
-            tmptarget = ':'.join('Button1'.split('$'))
-            tmpdata = {'__EVENTTARGET':tmptarget,'__EVENTARGUMENT':'','__VIEWSTATE':self.__xkviewstate,'xkkh':item[1]}
-            tmpdata = urllib.urlencode(tmpdata)
+            tmpthreadlist = []
+
+            tmpthreadlist.append(threading.Thread(group=None,target=self.__threading_go,name=self.__course[item[0]*2+1][0],args=(self.__course[item[0]*2+1][0],item[1],item[0],65535)))
+
+            for tmpthreaditem in tmpthreadlist:
+                tmpthreaditem.start()
             
 
-            tmpcourseurl = 'http://'+self.__serveraddr+'/xsxjs.aspx?xkkh='+self.__course[item[0]*2+1][0]+'&xh='+self.__username
-            self.__infoheader['Referer'] = tmpcourseurl
-            tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
-            tmpreqhandle = urllib2.Request(tmpcourseurl,tmpdata,self.__infoheader)
-            tmpcontent = tmpopener.open(tmpreqhandle,tmpdata).read().decode('gb2312').encode('utf-8')
-
-            tmpfp = open('tmptmp','w')
-            tmpfp.write(tmpcontent)
-            tmpfp.close()
-
-
-if __name__ == '__main__':
-    
-    test = xkcore('2010021110033','z310130210448',None,'222.197.165.148')
-    test.show_course()
+            for tmpthreaditem in tmpthreadlist:
+                tmpthreaditem.join()
+            
 
 

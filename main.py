@@ -74,7 +74,7 @@ while flag == 'r':
             except:
                 continue
 
-            print '请输入你要选择的课程，-1为结束'
+            print '请输入你要选择的课程，-1为开始选课'
             coursechoose = raw_input('>')
             
             try:
@@ -106,7 +106,9 @@ while flag == 'r':
 
             coursetuple = (coursechoose,teacherinfo[teacherchoose][0])
             course.append(coursetuple)
-
+        
+        print '选课开始，请耐心等待'
         xkinfo.go(course)
+        print '选课完成'
 
     info = []
