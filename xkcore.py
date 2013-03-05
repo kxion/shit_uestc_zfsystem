@@ -59,7 +59,7 @@ class xkcore:
         tmpcontent = tmpopener.open(tmpreqhandle,tmpdata).read().decode('gbk').encode('utf-8')
 
         
-        self.__course = re.findall('onclick="window.open\(\'xsxjs.aspx\?xkkh=([^&]+)&xh=2010021110033\',\'xsxjs\',\'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1\'\)">([^<]+)</a>',tmpcontent)
+        self.__course = re.findall('onclick="window.open\(\'xsxjs.aspx\?xkkh=([^&]+)&xh='+self.__username+'\',\'xsxjs\',\'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1\'\)">([^<]+)</a>',tmpcontent)
         tmppage = re.findall('<a href="javascript:__doPostBack\(\'([^\']+)\',\'([^\']?)\'\)">',tmpcontent)
         tmpviewstate = re.search('name="__VIEWSTATE" value="([^"]+)"',tmpcontent).group(1)
         
@@ -71,7 +71,7 @@ class xkcore:
             tmpdata = urllib.urlencode(tmpdata)
             tmpreqhandle = urllib2.Request(self.__xkurl,tmpdata,self.__infoheader)
             tmpcontent = tmpopener.open(tmpreqhandle,tmpdata).read().decode('gbk').encode('utf-8')
-            tmpcourse = re.findall('onclick="window.open\(\'xsxjs.aspx\?xkkh=([^&]+)&xh=2010021110033\',\'xsxjs\',\'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1\'\)">([^<]+)</a>',tmpcontent)
+            tmpcourse = re.findall('onclick="window.open\(\'xsxjs.aspx\?xkkh=([^&]+)&xh='+self.__username+'\',\'xsxjs\',\'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1\'\)">([^<]+)</a>',tmpcontent)
             self.__course = self.__course + tmpcourse
         
         
