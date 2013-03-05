@@ -3,6 +3,7 @@
 
 import conf
 import cxcore
+import xkcore
 import getpass
 
 flag = 'r'
@@ -11,9 +12,8 @@ year = ['2001-2002','2002-2003','2003-2004','2004-2005','2005-2006','2006-2007',
 
 
 userinfo = cxcore.cxcore(conf.username,conf.password)
-xkinfo = xkcore.xkcore(conf.username,conf.password)
 
-while(flag == 'r'):
+while flag == 'r':
     
     print '选择你所需要的功能：'
     print '0、学期成绩  1、学年成绩  2、历年成绩  3、学生课表查询'
@@ -61,8 +61,52 @@ while(flag == 'r'):
 
         info.append(termchoose + 1)
     
-    if(choose in range(6)):
+    if choose in range(6):
         userinfo.user_query(info)
     else:
-        userinfo.show_course()
+        course = []
+        xkinfo = xkcore.xkcore(conf.username,conf.password,None,'222.197.165.148')
+        coursechoose = 0
+        while coursechoose != -1:
+            
+            try:
+                coursenum = xkinfo.show_course()
+            except:
+                continue
+
+            print '请输入你要选择的课程，-1为结束'
+            coursechoose = raw_input('>')
+            
+            try:
+                coursechoose = int(coursechoose)
+            except:
+                print '你的输入错误，即将退出'
+                coursechoose = -1
+                continue
+            
+            if coursechoose == -1:
+                break
+
+            if coursechoose not in range(coursenum):
+                print '你的输入错误，即将退出'
+                coursechoose = -1;
+                continue
+            
+            
+            teacherinfo = xkinfo.show_teacher(coursechoose);
+
+            print '请输入你要选择的老师'
+            teacherchoose = raw_input('>')
+
+            try:
+                teacherchoose = int(teacherchoose)
+            except:
+                print '输入无效，请重新选择课程'
+                continue
+
+            coursetuple = (coursechoose,teacherinfo[teacherchoose][0])
+            course.append(coursetuple)
+
+        xkinfo.go(course)
+
     info = []

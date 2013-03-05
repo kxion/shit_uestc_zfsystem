@@ -76,9 +76,65 @@ class xkcore:
         
         for iterator in range(len(self.__course)):
             if iterator%2 == 0:
-                print '课程编号:'+self.__course[iterator][1]+'   ',
+                print "%d" % (iterator//2),
+                print '、课程编号:'+self.__course[iterator][1]+'   ',
             else:
                 print '课程名称:'+self.__course[iterator][1]
+
+        return len(self.__course)/2
+    
+    
+    def __get_courseurl(self):
+
+        self.__courseurl = []
+
+        for iterator in range(len(self.__course)):
+            if iterator % 2 == 0:
+                self.__courseurl.append('http://'+self.__serveraddr+'/xsxjs.aspx?xkkh='+self.__course[iterator][0]+'&xh='+self.__username)
+
+
+    def show_teacher(self,parmcourse):
+        
+        self.__viewflag = 0
+        self.__get_courseurl()
+        
+        tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
+        tmpreqhandle = urllib2.Request(self.__courseurl[parmcourse],None,self.__infoheader)
+        tmpcontent = tmpopener.open(tmpreqhandle,None).read().decode('gb2312').encode('utf-8')
+
+        tmpcourseinfo = re.findall('onclick="window.open\(\'jsxx.aspx\?xh='+self.__username+'&xkkh=([^&]+)&amp;jszgh=([^\']+)\',\'jsxx\',\'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=0\'\)" href="#" >([^<]+)</A>',tmpcontent)
+        
+
+        if self.__viewflag == 0 :
+            self.__xkviewstate = re.search('name="__VIEWSTATE" value="([^"]+)"',tmpcontent).group(1)
+            self.__viewflag = 1
+
+        for iterator in range(len(tmpcourseinfo)):
+            print iterator,
+            print '、 课程编号:'+tmpcourseinfo[iterator][0]+'   ',
+            print '上课教师:'+tmpcourseinfo[iterator][2]
+
+        return tmpcourseinfo
+    
+    def go(self,parmcourse):
+
+        for item in parmcourse:
+            
+            tmptarget = ':'.join('Button1'.split('$'))
+            tmpdata = {'__EVENTTARGET':tmptarget,'__EVENTARGUMENT':'','__VIEWSTATE':self.__xkviewstate,'xkkh':item[1]}
+            tmpdata = urllib.urlencode(tmpdata)
+            
+
+            tmpcourseurl = 'http://'+self.__serveraddr+'/xsxjs.aspx?xkkh='+self.__course[item[0]*2+1][0]+'&xh='+self.__username
+            self.__infoheader['Referer'] = tmpcourseurl
+            tmpopener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.__cookie))
+            tmpreqhandle = urllib2.Request(tmpcourseurl,tmpdata,self.__infoheader)
+            tmpcontent = tmpopener.open(tmpreqhandle,tmpdata).read().decode('gb2312').encode('utf-8')
+
+            tmpfp = open('tmptmp','w')
+            tmpfp.write(tmpcontent)
+            tmpfp.close()
+
 
 if __name__ == '__main__':
     
