@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #coding=utf-8
 
+import time
 import conf
 import cxcore
 import xkcore
@@ -8,10 +9,10 @@ import getpass
 
 flag = 'r'
 info = []
+cxfail = 32
+flagcxlogin = 0
+flagxklogin = 0
 year = ['2001-2002','2002-2003','2003-2004','2004-2005','2005-2006','2006-2007','2007-2008','2008-2009','2009-2010','2010-2011','2011-2012','2012-2013','2013-2014']
-
-
-userinfo = cxcore.cxcore(conf.username,conf.password)
 
 while flag == 'r':
     
@@ -62,10 +63,44 @@ while flag == 'r':
         info.append(termchoose + 1)
     
     if choose in range(6):
+        
+        while flagcxlogin == 0:
+            wait = 1
+            try:
+                userinfo = cxcore.cxcore(conf.username,conf.password)
+                flagcxlogin = 1
+            except:
+                if wait <= cxfail :
+                    print '由于网络的原因，连接失败，%d秒后重试' % wait
+                    time.sleep(wait)
+                    wait <<= 1
+                else:
+                    print '连接超时，正在退出'
+                    exit(-1)
+            
         userinfo.user_query(info)
+    
     else:
         course = []
-        xkinfo = xkcore.xkcore(conf.username,conf.password,None,'222.197.165.148')
+        xkfail = 128
+        serviter = 0
+        while flagxklogin == 0:
+            wait = 1
+            try:
+                serverlist = conf.xkserver.split('|')
+                serviter = serviter % len(serverlist)
+                xkinfo = xkcore.xkcore(conf.username,conf.password,None,serverlist[serviter])
+                print '%s ： 登录成功' % serverlist[serviter]
+                flagxklogin = 1
+            except:
+                if xkfail :
+                    print '由于网络的原因，连接失败，%d秒后重试' % wait
+                    time.sleep(wait)
+                    xkfail -= 1
+                    serviter += 1
+                else:
+                    print '连接超时，正在退出'
+                    exit(-1)
         coursechoose = 0
         while coursechoose != -1:
             

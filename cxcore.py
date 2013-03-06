@@ -23,7 +23,6 @@ class cxcore:
         self.__login_data = {'userName':self.__username,'password':self.__password,'btn':'登录'}
         self.__login_data = urllib.urlencode(self.__login_data)
         self.__login()
-        print '登录成功'
 
     def __login(self):
 
@@ -33,7 +32,7 @@ class cxcore:
         self.__tmpcontent = tmpopener.open(self.__query_url).read().decode('gb2312').encode('utf-8')
         tmpornot = re.search('"xscjcx.aspx\?([^"]+)"',self.__tmpcontent)
         if(tmpornot == None):
-            print '学号或密码错误'
+            print '学号或密码错误，正在退出'
             exit(0)
 
     def __cjcx_query(self,info):

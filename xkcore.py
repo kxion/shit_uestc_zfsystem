@@ -11,15 +11,16 @@ import threading
 class xkcore:
 
     __cookie = cookielib.CookieJar()
-    __loginheader = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3','Accept-Encoding':'gzip,deflate,sdch','Accept-Language':'en-US,en;q=0.8','Cache-Control':'max-age=0','Connection':'keep-alive','Host':'222.197.165.148','Referer':'http://222.197.165.148/default_ldap.aspx','User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.12 Safari/537.31'}
+    __loginheader = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3','Accept-Encoding':'gzip,deflate,sdch','Accept-Language':'en-US,en;q=0.8','Cache-Control':'max-age=0','Connection':'keep-alive','Host':'','Referer':'','User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.12 Safari/537.31'}
     
 
     def __init__(self,username,password,useropt,serveraddr):
-
         self.__username = username
         self.__password = password
         self.__useropt = useropt
         self.__serveraddr = serveraddr
+        self.__loginheader['HOST'] = self.__serveraddr
+        self.__loginheader['Referer'] = self.__serveraddr+'/default_ldap.aspx'
         self.__loginurl = 'http://'+self.__serveraddr+'/default_ldap.aspx'
         self.__infourl = 'http://'+self.__serveraddr+'/xs_main_zzjk.aspx?xh='+self.__username
         self.__login()
@@ -174,24 +175,28 @@ class xkcore:
                 continue
 
             stopflag = False
-
-
+        self.__threadcnt -= 1
 
 
     def go(self,parmcourse):
+        
+        self.__threadcnt = 0
+        tmpitemlist = []
 
         for item in parmcourse:
             
             tmpthreadlist = []
 
             tmpthreadlist.append(threading.Thread(group=None,target=self.__threading_go,name=self.__course[item[0]*2+1][0],args=(self.__course[item[0]*2+1][0],item[1],item[0],65535)))
+            
+            self.__threadcnt += 1
 
             for tmpthreaditem in tmpthreadlist:
                 tmpthreaditem.start()
             
-
+        while self.__threadcnt:
             for tmpthreaditem in tmpthreadlist:
-                tmpthreaditem.join()
+                tmpthreaditem.join(0)
+            time.sleep(1)
             
-
 
